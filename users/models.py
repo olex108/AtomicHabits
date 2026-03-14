@@ -1,10 +1,11 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+import uuid
 
 
 class User(AbstractUser):
     """
-    Model of user representing with field email for authentication of user
+    Model of user representing with field phone for authentication of user
 
     Field  from AbstractUser model
     id: id of user
@@ -17,29 +18,36 @@ class User(AbstractUser):
     is_active:
     date_joined:
 
-    Added fields for project
-    email: email address of user is uniq field
     phone: phone number in formate "+XXXXXXXXXXX"
-    country: country in charfield formate
-    avatar: image of useer
-    token: token to verification of user email
+    tg_chat_id: id of telegram bot. Get with first message to bot
+    bot_token: field to verification and bind of bot
     """
 
     username = None
-    email = models.EmailField(verbose_name="Почта", null=True, blank=True)
-    phone = models.CharField(unique=True, max_length=15, verbose_name="Телефон")
-    country = models.CharField(max_length=32, verbose_name="Страна", help_text="страна", blank=True, null=True)
-    avatar = models.ImageField(
-        upload_to="users/avatar/", verbose_name="Аватар", help_text="Загрузите аватар", blank=True, null=True
+    phone = models.CharField(
+        unique=True,
+        max_length=15,
+        verbose_name="Телефон",
+        help_text="Введите номер в формате +79XXXXXXXXX"
     )
-
-    token = models.CharField(max_length=100, verbose_name="Token", blank=True, null=True)
+    tg_chat_id = models.CharField(
+        max_length=50,
+        verbose_name="Telegram Chat ID",
+        blank=True,
+        null=True,
+        unique=True
+    )
 
     USERNAME_FIELD = "phone"
     REQUIRED_FIELDS = []
 
     def __str__(self):
-        return self.email
+        return self.phone
+
+    def set_bot_token(self):
+        """Генерирует уникальный токен для привязки бота"""
+        self.bot_token = str(uuid.uuid4())[:8]  # Короткий код из 8 символов
+        self.save()
 
     class Meta:
         verbose_name = "пользователь"

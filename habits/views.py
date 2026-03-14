@@ -1,52 +1,47 @@
-from rest_framework import viewsets, permissions
-from rest_framework.decorators import action
-from rest_framework.response import Response
+from rest_framework import viewsets, generics, permissions
 from .models import Habit
 from .serializers import HabitSerializer
-from .pagination import HabitPaginator # Если нужна кастомная пагинация
+from .pagination import HabitPaginator
 from .permissions import IsOwner
+
+from .services import create_periodic_task
 
 
 class HabitViewSet(viewsets.ModelViewSet):
-    queryset = Habit.objects.all()
+    """
+    ViewSet для работы с ЛИЧНЫМИ привычками пользователя (CRUD).
+    Здесь будут отображаться и публичные, и приватные привычки текущего юзера.
+    """
     serializer_class = HabitSerializer
     pagination_class = HabitPaginator
 
-    def get_permissions(self):
-        """
-        Метод гибкой настройки прав для разных действий.
-        """
-        if self.action in ['update', 'partial_update', 'destroy', 'retrieve']:
-            # Редактировать, удалять и смотреть детали может только владелец
-            permission_classes = [permissions.IsAuthenticated, IsOwner]
-        else:
-            # Создавать и смотреть списки может любой авторизованный юзер
-            permission_classes = [permissions.IsAuthenticated]
-        return [permission() for permission in permission_classes]
-
     def get_queryset(self):
-        """
-        Фильтрация:
-        - В обычном списке — только свои.
-        - В списке 'public' — только публичные.
-        """
-
-        if self.action == 'public_list':
-            return Habit.objects.filter(is_public=True)
-        return Habit.objects.filter(user=self.request.user)
+        # Пользователь видит только свои объекты (любого типа приватности)
+        return Habit.objects.filter(user=self.request.user).order_by('id')
 
     def perform_create(self, serializer):
+        # При создании автоматически назначаем владельца
         serializer.save(user=self.request.user)
 
-    @action(detail=False, methods=['get'], url_path='public')
-    def public_list(self, request):
-        """Эндпоинт: Список публичных привычек"""
+        def perform_create(self, serializer):
+            habit = serializer.save(user=self.request.user)
+            # Если у пользователя привязан ТГ, создаем задачу
+            if habit.user.tg_chat_id:
+                create_periodic_task(habit)
 
-        queryset = self.get_queryset()
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
+    def get_permissions(self):
+        # Для действий с конкретным объектом (id) проверяем владельца
+        if self.action in ['update', 'partial_update', 'destroy', 'retrieve']:
+            return [permissions.IsAuthenticated(), IsOwner()]
+        return [permissions.IsAuthenticated()]
 
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+
+class PublicHabitListAPIView(generics.ListAPIView):
+    """
+    Эндпоинт для просмотра ВСЕХ публичных привычек всех пользователей.
+    Доступен только для чтения (List).
+    """
+    serializer_class = HabitSerializer
+    queryset = Habit.objects.filter(is_public=True).order_by('id')
+    pagination_class = HabitPaginator
+    permission_classes = [permissions.IsAuthenticated]
