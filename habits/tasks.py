@@ -3,6 +3,8 @@ import requests
 from celery import shared_task
 from .models import Habit
 
+from config.settings import BOT_API_KEY
+
 
 @shared_task
 def send_telegram_reminder(habit_id):
@@ -25,7 +27,7 @@ def send_telegram_reminder(habit_id):
             f"Время: {habit.time.strftime('%H:%M')}"
         )
 
-        url = f"https://api.telegram.org{settings.TELEGRAM_BOT_API_KEY}/sendMessage"
+        url = f"https://api.telegram.org{BOT_API_KEY}/sendMessage"
         response = requests.post(url, data={
             "chat_id": user.tg_chat_id,
             "text": message

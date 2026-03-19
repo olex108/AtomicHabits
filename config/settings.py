@@ -142,4 +142,4 @@ CELERY_TASK_TRACK_STARTED = True
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
 
 # Telegram
-TELEGRAM_BOT_API_KEY = os.getenv('BOT_API_KEY')
+BOT_API_KEY = os.getenv('BOT_API_KEY')
