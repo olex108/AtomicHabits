@@ -8,7 +8,9 @@ app_name = UsersConfig.name
 
 urlpatterns = [
     # 1. Регистрация
-    path('register/', views.UserCreateAPIView.as_view(), name='user-register'),
+    path('register/', views.UserCreateAPIView.as_view(), name='register'),
+    path('set_telegram/', views.TelegramUpdateAPIView.as_view(), name='set_telegram_id'),
+
     # 2. Авторизация (получение JWT токена по телефону и паролю)
     path('login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     # 3. Обновление токена
