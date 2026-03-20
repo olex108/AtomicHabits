@@ -2,7 +2,7 @@ from rest_framework import generics
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from .models import User
-from .serializers import UserSerializer, TelegramIdSerializer
+from .serializers import TelegramIdSerializer, UserSerializer
 
 
 class UserCreateAPIView(generics.CreateAPIView):
@@ -17,6 +17,7 @@ class TelegramUpdateAPIView(generics.UpdateAPIView):
     """
     Эндпоинт для привязки Telegram Chat ID к профилю текущего пользователя.
     """
+
     serializer_class = TelegramIdSerializer
     permission_classes = [IsAuthenticated]
 

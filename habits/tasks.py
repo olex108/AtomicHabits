@@ -1,9 +1,9 @@
-import os
 import requests
 from celery import shared_task
-from .models import Habit
 
 from config.settings import BOT_API_KEY
+
+from .models import Habit
 
 
 @shared_task
@@ -21,17 +21,14 @@ def send_telegram_reminder(habit_id):
             return f"У пользователя {user.phone} не привязан Telegram"
 
         message = (
-            f"🔔 Напоминание о привычке!\n"
+            f"Напоминание о привычке!\n"
             f"Действие: {habit.action}\n"
             f"Место: {habit.place}\n"
-            f"Время: {habit.time.strftime('%H:%M')}"
+            f"Время: {habit.time}"
         )
 
-        url = f"https://api.telegram.org{BOT_API_KEY}/sendMessage"
-        response = requests.post(url, data={
-            "chat_id": user.tg_chat_id,
-            "text": message
-        })
+        url = f"https://api.telegram.org/bot{BOT_API_KEY}/sendMessage"
+        response = requests.post(url, data={"chat_id": user.tg_chat_id, "text": message})
 
         return response.json()
 

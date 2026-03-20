@@ -1,5 +1,6 @@
 from rest_framework import permissions
 
+
 class IsOwner(permissions.BasePermission):
     """
     Разрешение: доступ к объекту имеет только его создатель.

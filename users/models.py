@@ -1,6 +1,5 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-import uuid
 
 
 class User(AbstractUser):
@@ -13,21 +12,14 @@ class User(AbstractUser):
 
     username = None
     phone = models.CharField(
-        unique=True,
-        max_length=15,
-        verbose_name="Телефон",
-        help_text="Введите номер в формате +79XXXXXXXXX"
+        unique=True, max_length=15, verbose_name="Телефон", help_text="Введите номер в формате +79XXXXXXXXX"
     )
-    tg_chat_id = models.CharField(
-        max_length=50,
-        verbose_name="Telegram Chat ID",
-        blank=True,
-        null=True,
-        unique=True
-    )
+    tg_chat_id = models.CharField(max_length=50, verbose_name="Telegram Chat ID", blank=True, null=True, unique=True)
 
     USERNAME_FIELD = "phone"
-    REQUIRED_FIELDS = ["username",]
+    REQUIRED_FIELDS = [
+        "username",
+    ]
 
     def __str__(self):
         return self.phone
